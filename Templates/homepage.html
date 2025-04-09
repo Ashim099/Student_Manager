@@ -1,0 +1,41 @@
+<!-- templates/homepage.html -->
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-4">Welcome to Student Manager</h1>
+        <p class="lead">A platform to manage programs, modules, assignments, and more.</p>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg mt-3">Get Started</a>
+        {% endif %}
+    </div>
+</div>
+<div class="container py-5">
+    <div class="row text-center">
+        <div class="col-md-4">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title">For Students</h5>
+                    <p class="card-text">View your programs, modules, and submit assignments.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title">For Teachers</h5>
+                    <p class="card-text">Manage modules, assignments, and student submissions.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title">For Admins</h5>
+                    <p class="card-text">Oversee users, programs, and system settings.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

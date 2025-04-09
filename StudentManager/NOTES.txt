@@ -1,0 +1,13 @@
+# Database
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'studentmanager',
+        'USER': 'studentadmin',
+        'PASSWORD': 'ashim0099',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+
