@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow animate__animated animate__fadeIn">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Course Recommendations</h2>
+                    {% if recommended_courses %}
+                        <div class="alert alert-success">
+                            <h5>Recommended Courses:</h5>
+                            <ul>
+                                {% for course in recommended_courses %}
+                                    <li>{{ course }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="interests" class="form-label">Interests (comma-separated)</label>
+                            <input type="text" class="form-control" id="interests" name="interests" placeholder="e.g., Python, Data Science, Web Development" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Get Recommendations</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

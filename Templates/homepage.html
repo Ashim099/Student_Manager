@@ -1,38 +1,72 @@
-<!-- templates/homepage.html -->
 {% extends 'base.html' %}
 {% block content %}
 <div class="hero-section">
     <div class="container">
-        <h1 class="display-4">Welcome to Student Manager</h1>
-        <p class="lead">A platform to manage programs, modules, assignments, and more.</p>
+        <h1 class="display-4 animate__animated animate__fadeInDown">Welcome to Oxford Academy</h1>
+        <p class="lead animate__animated animate__fadeInUp">Empowering the Future of Education with Elegance</p>
         {% if not user.is_authenticated %}
-            <a href="{% url 'login' %}" class="btn btn-primary btn-lg mt-3">Get Started</a>
+            <div class="mt-4">
+                <a href="{% url 'signup' %}" class="btn btn-primary btn-lg mx-2 animate__animated animate__fadeInUp animate__delay-1s">Sign Up</a>
+                <a href="#features" class="btn btn-outline-light btn-lg mx-2 animate__animated animate__fadeInUp animate__delay-1s">Explore Features</a>
+            </div>
         {% endif %}
     </div>
 </div>
-<div class="container py-5">
-    <div class="row text-center">
-        <div class="col-md-4">
-            <div class="card dashboard-card">
+
+<div class="container py-5" id="features">
+    <h2 class="text-center mb-5 animate__animated animate__fadeIn">Features for Everyone</h2>
+    <div class="row">
+        <!-- Student Features -->
+        <div class="col-12 col-md-4 mb-4">
+            <div class="feature-card animate__animated animate__fadeInUp">
+                <div class="card-header">
+                    For Students
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">For Students</h5>
-                    <p class="card-text">View your programs, modules, and submit assignments.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">GPA Prediction with ML</li>
+                        <li class="list-group-item">Course Recommendations</li>
+                        <li class="list-group-item">Pomodoro Timer for Focus</li>
+                        <li class="list-group-item">Set Reminders</li>
+                        <li class="list-group-item">Access Study Resources</li>
+                        <li class="list-group-item">Submit Assignments</li>
+                        <li class="list-group-item">View Results</li>
+                        <li class="list-group-item">Choose Programs</li>
+                    </ul>
+                    <a href="{% url 'student_login' %}" class="btn btn-primary mt-3 w-100">Student Login</a>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card dashboard-card">
+        <!-- Teacher Features -->
+        <div class="col-12 col-md-4 mb-4">
+            <div class="feature-card animate__animated animate__fadeInUp animate__delay-1s">
+                <div class="card-header">
+                    For Teachers
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">For Teachers</h5>
-                    <p class="card-text">Manage modules, assignments, and student submissions.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Manage Study Resources</li>
+                        <li class="list-group-item">Share Assignments</li>
+                        <li class="list-group-item">Post Announcements</li>
+                        <li class="list-group-item">Publish Results</li>
+                    </ul>
+                    <a href="{% url 'teacher_login' %}" class="btn btn-primary mt-3 w-100">Teacher Login</a>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card dashboard-card">
+        <!-- Admin Features -->
+        <div class="col-12 col-md-4 mb-4">
+            <div class="feature-card animate__animated animate__fadeInUp animate__delay-2s">
+                <div class="card-header">
+                    For Admins
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">For Admins</h5>
-                    <p class="card-text">Oversee users, programs, and system settings.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Create Programs</li>
+                        <li class="list-group-item">Assign Teachers to Modules</li>
+                        <li class="list-group-item">Manage Users</li>
+                    </ul>
+                    <a href="{% url 'admin_login' %}" class="btn btn-primary mt-3 w-100">Admin Login</a>
                 </div>
             </div>
         </div>

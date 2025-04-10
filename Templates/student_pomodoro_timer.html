@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow animate__animated animate__fadeIn">
+                <div class="card-body text-center">
+                    <h2 class="card-title mb-4">Pomodoro Timer</h2>
+                    <div id="timer" class="display-4 mb-4">25:00</div>
+                    <button id="startBtn" class="btn btn-primary me-2">Start</button>
+                    <button id="pauseBtn" class="btn btn-secondary me-2" disabled>Pause</button>
+                    <button id="resetBtn" class="btn btn-danger">Reset</button>
+                    <p class="mt-4">Work for 25 minutes, then take a 5-minute break!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    let time = 25 * 60;
+    let timerInterval;
+    const timerDisplay = document.getElementById('timer');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    function updateTimer() {
+        const minutes = Math.floor(time / 60);
+        const seconds = time % 60;
+        timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        if (time <= 0) {
+            clearInterval(timerInterval);
+            timerDisplay.textContent = 'Break Time!';
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            setTimeout(() => {
+                time = 5 * 60; // 5-minute break
+                startTimer();
+            }, 2000);
+        }
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            time--;
+            updateTimer();
+        }, 1000);
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+    }
+
+    startBtn.addEventListener('click', startTimer);
+    pauseBtn.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+    });
+    resetBtn.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        time = 25 * 60;
+        updateTimer();
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+    });
+
+    updateTimer();
+</script>
+{% endblock %}

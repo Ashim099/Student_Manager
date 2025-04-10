@@ -1,11 +1,36 @@
-<!-- templates/student_dashboard.html -->
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-5">
-    <h2 class="mb-4">Student Dashboard</h2>
+    <h2 class="text-center mb-5 animate__animated animate__fadeIn">Student Dashboard</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <a href="{% url 'student_choose_program' %}" class="btn btn-primary w-100 mb-3">Choose Program</a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'student_gpa_prediction' %}" class="btn btn-primary w-100 mb-3">Predict GPA</a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'student_course_recommendation' %}" class="btn btn-primary w-100 mb-3">Course Recommendations</a>
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <a href="{% url 'student_pomodoro_timer' %}" class="btn btn-primary w-100 mb-3">Pomodoro Timer</a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'student_set_reminder' %}" class="btn btn-primary w-100 mb-3">Set Reminder</a>
+        </div>
+    </div>
     <div class="row">
-        <div class="col-md-6">
-            <div class="card dashboard-card mb-4">
+        <div class="col-12 col-md-6 mb-4">
+            <div class="card dashboard-card animate__animated animate__fadeIn">
                 <div class="card-body">
                     <h5 class="card-title">Enrolled Programs</h5>
                     {% if student_programs %}
@@ -20,8 +45,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card dashboard-card mb-4">
+        <div class="col-12 col-md-6 mb-4">
+            <div class="card dashboard-card animate__animated animate__fadeIn">
                 <div class="card-body">
                     <h5 class="card-title">Modules</h5>
                     {% if modules %}
@@ -36,32 +61,135 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div class="card dashboard-card">
-        <div class="card-body">
-            <h5 class="card-title">Assignments</h5>
-            {% if assignments %}
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Module</th>
-                            <th>Due Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for assignment in assignments %}
-                            <tr>
-                                <td>{{ assignment.title }}</td>
-                                <td>{{ assignment.module.code }}</td>
-                                <td>{{ assignment.due_date }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p>No assignments available.</p>
-            {% endif %}
+        <div class="col-12 mb-4">
+            <div class="card dashboard-card animate__animated animate__fadeIn">
+                <div class="card-body">
+                    <h5 class="card-title">Study Resources</h5>
+                    {% if resources %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Module</th>
+                                        <th>File</th>
+                                        <th>Uploaded At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for resource in resources %}
+                                        <tr>
+                                            <td>{{ resource.title }}</td>
+                                            <td>{{ resource.module.code }}</td>
+                                            <td><a href="{{ resource.file.url }}" target="_blank" class="text-gold">Download</a></td>
+                                            <td>{{ resource.uploaded_at }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>No resources available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 mb-4">
+            <div class="card dashboard-card animate__animated animate__fadeIn">
+                <div class="card-body">
+                    <h5 class="card-title">Assignments</h5>
+                    {% if assignments %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Module</th>
+                                        <th>Due Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for assignment in assignments %}
+                                        <tr>
+                                            <td>{{ assignment.title }}</td>
+                                            <td>{{ assignment.module.code }}</td>
+                                            <td>{{ assignment.due_date }}</td>
+                                            <td>
+                                                <a href="{% url 'student_submit_assignment' assignment.id %}" class="btn btn-primary btn-sm">Submit</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>No assignments available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 mb-4">
+            <div class="card dashboard-card animate__animated animate__fadeIn">
+                <div class="card-body">
+                    <h5 class="card-title">Results</h5>
+                    {% if results %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Module</th>
+                                        <th>Grade</th>
+                                        <th>Published At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in results %}
+                                        <tr>
+                                            <td>{{ result.module.code }}</td>
+                                            <td>{{ result.grade }}</td>
+                                            <td>{{ result.published_at }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>No results available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 mb-4">
+            <div class="card dashboard-card animate__animated animate__fadeIn">
+                <div class="card-body">
+                    <h5 class="card-title">Reminders</h5>
+                    {% if reminders %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reminder in reminders %}
+                                        <tr>
+                                            <td>{{ reminder.title }}</td>
+                                            <td>{{ reminder.due_date }}</td>
+                                            <td>{{ reminder.is_notified|yesno:"Notified,Pending" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>No reminders set.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

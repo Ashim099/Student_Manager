@@ -1,0 +1,354 @@
+/* D:\StudentManager\static\css\styles.css */
+
+/* Import Google Fonts for a luxurious feel */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap');
+
+/* Define the luxury theme variables */
+:root {
+    --dark-blue: #0A1A2F;         /* Primary dark blue for backgrounds */
+    --navy-blue: #1B263B;         /* Secondary dark blue for elements */
+    --luxury-gold: #D4AF37;       /* Elegant gold for accents */
+    --light-blue: #4A6FA5;        /* Light blue for highlights and hover effects */
+    --background-gradient: linear-gradient(135deg, #0A1A2F, #1B263B); /* Gradient for depth */
+    --text-primary: #FFFFFF;      /* White for primary text */
+    --text-secondary: #B0C4DE;    /* Light gray for secondary text */
+    --glass-bg: rgba(255, 255, 255, 0.1); /* Semi-transparent background for glassmorphism */
+    --glass-blur: blur(10px);     /* Blur effect for glassmorphism */
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+}
+
+/* Reset default styles and apply base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--background-gradient);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.6;
+}
+
+/* Headings with a luxurious serif font */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    color: var(--luxury-gold);
+    font-weight: 700;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Navbar styling */
+.navbar {
+    background: var(--background-gradient);
+    padding: 1rem 0;
+    box-shadow: var(--shadow);
+    border-bottom: 1px solid var(--light-blue);
+}
+
+.navbar-brand, .nav-link {
+    color: var(--luxury-gold) !important;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.navbar-brand:hover, .nav-link:hover {
+    color: var(--text-primary) !important;
+    transform: translateY(-2px);
+}
+
+.dropdown-menu {
+    background: var(--dark-blue);
+    border: 1px solid var(--light-blue);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.dropdown-item {
+    color: var(--luxury-gold);
+    font-family: 'Poppins', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background-color: var(--luxury-gold);
+    color: var(--dark-blue);
+}
+
+/* Hero section styling */
+.hero-section {
+    background: linear-gradient(rgba(10, 26, 47, 0.9), rgba(10, 26, 47, 0.9)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1');
+    background-size: cover;
+    background-position: center;
+    color: var(--text-primary);
+    text-align: center;
+    padding: 150px 0;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--background-gradient);
+    opacity: 0.3;
+}
+
+.hero-section h1 {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.hero-section p {
+    font-size: 1.5rem;
+    font-weight: 300;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Feature cards with glassmorphism effect */
+.feature-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 2rem;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.feature-card .card-header {
+    background: var(--dark-blue);
+    color: var(--luxury-gold);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    text-align: center;
+    padding: 15px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    border-bottom: 1px solid var(--light-blue);
+}
+
+.feature-card .card-body {
+    background: transparent;
+    color: var(--text-secondary);
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+
+.list-group-item {
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    padding: 10px 0;
+    transition: color 0.3s ease;
+}
+
+.list-group-item:hover {
+    color: var(--luxury-gold);
+}
+
+/* General card styling with glassmorphism */
+.card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-title {
+    color: var(--luxury-gold);
+    font-family: 'Playfair Display', serif;
+}
+
+/* Button styling with gradient and hover effects */
+.btn-primary {
+    background: linear-gradient(135deg, var(--navy-blue), var(--light-blue));
+    border: none;
+    color: var(--text-primary);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--luxury-gold), #b8972e);
+    color: var(--dark-blue);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+.btn-outline-light {
+    border-color: var(--luxury-gold);
+    color: var(--luxury-gold);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background-color: var(--luxury-gold);
+    color: var(--dark-blue);
+}
+
+/* Form styling */
+.form-control {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--light-blue);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 10px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--luxury-gold);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.form-label {
+    color: var(--luxury-gold);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+}
+
+/* Table styling */
+.table {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table th {
+    background: var(--dark-blue);
+    color: var(--luxury-gold);
+    font-family: 'Playfair Display', serif;
+    padding: 15px;
+    border-bottom: 1px solid var(--light-blue);
+}
+
+.table td {
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 15px;
+    vertical-align: middle;
+    transition: background 0.3s ease;
+}
+
+.table tr:hover td {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Dashboard card styling */
+.dashboard-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(10, 26, 47, 0.2), rgba(27, 38, 59, 0));
+    pointer-events: none;
+}
+
+/* Footer styling */
+footer {
+    background: var(--background-gradient);
+    padding: 2rem 0;
+    border-top: 1px solid var(--light-blue);
+}
+
+.text-gold {
+    color: var(--luxury-gold);
+    transition: color 0.3s ease;
+}
+
+.text-gold:hover {
+    color: var(--text-primary);
+}
+
+/* Main content area */
+.main-content {
+    flex: 1;
+    padding: 2rem 0;
+}
+
+/* Alerts */
+.alert {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    border-radius: 8px;
+}
+
+.alert-success {
+    border-left: 4px solid var(--luxury-gold);
+}
+
+.alert-danger {
+    border-left: 4px solid #ff4d4d;
+}
+
+/* Pomodoro timer specific styling */
+#timer {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    color: var(--luxury-gold);
+    margin-bottom: 2rem;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-section p {
+        font-size: 1.2rem;
+    }
+
+    .navbar-brand, .nav-link {
+        font-size: 1rem;
+    }
+
+    .feature-card .card-header {
+        font-size: 1.2rem;
+    }
+}

@@ -1,40 +1,56 @@
-<!-- templates/admin_dashboard.html -->
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-5">
-    <h2 class="mb-4">Admin Dashboard</h2>
-    <div class="row">
+    <h2 class="text-center mb-5 animate__animated animate__fadeIn">Admin Dashboard</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    <div class="row mb-4">
         <div class="col-md-6">
-            <div class="card dashboard-card mb-4">
+            <a href="{% url 'admin_create_program' %}" class="btn btn-primary w-100 mb-3">Create Program</a>
+        </div>
+        <div class="col-md-6">
+            <a href="{% url 'admin_create_module' %}" class="btn btn-primary w-100 mb-3">Create Module</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 col-md-6 mb-4">
+            <div class="card dashboard-card animate__animated animate__fadeIn">
                 <div class="card-body">
                     <h5 class="card-title">Users</h5>
                     {% if users %}
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Role</th>
-                                    <th>Email</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user in users %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
                                     <tr>
-                                        <td>{{ user.username }}</td>
-                                        <td>{{ user.role }}</td>
-                                        <td>{{ user.email }}</td>
+                                        <th>Username</th>
+                                        <th>Role</th>
+                                        <th>Email</th>
                                     </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                        <tr>
+                                            <td>{{ user.username }}</td>
+                                            <td>{{ user.role }}</td>
+                                            <td>{{ user.email }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     {% else %}
                         <p>No users found.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card dashboard-card mb-4">
+        <div class="col-12 col-md-6 mb-4">
+            <div class="card dashboard-card animate__animated animate__fadeIn">
                 <div class="card-body">
                     <h5 class="card-title">Programs</h5>
                     {% if programs %}
@@ -45,6 +61,43 @@
                         </ul>
                     {% else %}
                         <p>No programs available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 mb-4">
+            <div class="card dashboard-card animate__animated animate__fadeIn">
+                <div class="card-body">
+                    <h5 class="card-title">Modules</h5>
+                    {% if modules %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Name</th>
+                                        <th>Program</th>
+                                        <th>Teacher</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for module in modules %}
+                                        <tr>
+                                            <td>{{ module.code }}</td>
+                                            <td>{{ module.name }}</td>
+                                            <td>{{ module.program.name }}</td>
+                                            <td>{{ module.teacher.username|default:"Not Assigned" }}</td>
+                                            <td>
+                                                <a href="{% url 'admin_assign_teacher' module.id %}" class="btn btn-sm btn-primary">Assign Teacher</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>No modules available.</p>
                     {% endif %}
                 </div>
             </div>

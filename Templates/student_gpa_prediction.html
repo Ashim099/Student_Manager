@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow animate__animated animate__fadeIn">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">GPA Prediction</h2>
+                    {% if predicted_gpa %}
+                        <div class="alert alert-success text-center">
+                            Your Predicted GPA: <strong>{{ predicted_gpa }}</strong>
+                        </div>
+                    {% endif %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="grade_1" class="form-label">Grade 1 (0-100)</label>
+                            <input type="number" class="form-control" id="grade_1" name="grade_1" min="0" max="100" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="grade_2" class="form-label">Grade 2 (0-100)</label>
+                            <input type="number" class="form-control" id="grade_2" name="grade_2" min="0" max="100" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="grade_3" class="form-label">Grade 3 (0-100)</label>
+                            <input type="number" class="form-control" id="grade_3" name="grade_3" min="0" max="100" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="attendance" class="form-label">Attendance Percentage (0-100)</label>
+                            <input type="number" class="form-control" id="attendance" name="attendance" min="0" max="100" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Predict GPA</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
