@@ -5,10 +5,30 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
 import random
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
 from ratelimit.decorators import ratelimit
 from .models import User, OTP, Program, Module, StudentProgram, Resource, Assignment, Submission, Result, Reminder, Announcement
-from ml_models.gpa_predictor import predict_gpa
-from ml_models.course_recommender import recommend_courses
+#from ml_models.gpa_predictor import predict_gpa
+#from ml_models.course_recommender import recommend_courses
+
+@ratelimit(key='ip', rate='5/m', method='POST', block=True)
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            if user.role == 'student':
+                return redirect('student_dashboard')
+            elif user.role == 'teacher':
+                return redirect('teacher_dashboard')
+            elif user.role == 'admin':
+                return redirect('admin_dashboard')
+        else:
+            return render(request, 'login.html', {'error': 'Invalid credentials'})
+    return render(request, 'login.html')
 
 # Homepage View
 def homepage_view(request):
@@ -254,7 +274,7 @@ def student_choose_program(request):
         return redirect('student_dashboard')
     return render(request, 'student_choose_program.html', {'programs': programs})
 
-# Student: GPA Prediction
+'''# Student: GPA Prediction
 def student_gpa_prediction(request):
     if not request.user.is_authenticated or request.user.role != 'student':
         return redirect('homepage')
@@ -264,9 +284,9 @@ def student_gpa_prediction(request):
         student_data = {'grades': grades, 'attendance': attendance}
         predicted_gpa = predict_gpa(student_data)
         return render(request, 'student_gpa_prediction.html', {'predicted_gpa': predicted_gpa})
-    return render(request, 'student_gpa_prediction.html')
+    return render(request, 'student_gpa_prediction.html')'''
 
-# Student: Course Recommendation
+'''# Student: Course Recommendation
 def student_course_recommendation(request):
     if not request.user.is_authenticated or request.user.role != 'student':
         return redirect('homepage')
@@ -275,7 +295,7 @@ def student_course_recommendation(request):
         student_data = {'interests': [interest.strip() for interest in interests]}
         recommended_courses = recommend_courses(student_data)
         return render(request, 'student_course_recommendation.html', {'recommended_courses': recommended_courses})
-    return render(request, 'student_course_recommendation.html')
+    return render(request, 'student_course_recommendation.html')'''
 
 # Student: Pomodoro Timer
 def student_pomodoro_timer(request):

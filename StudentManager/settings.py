@@ -1,4 +1,4 @@
-# StudentManager/settings.py
+# D:\StudentManager\StudentManager\settings.py
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -20,9 +20,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'background_task'
+    'django_ratelimit',  # Added for rate-limiting
+    'background_task',   # For background tasks
     'core',
-] 
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -53,8 +54,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'StudentManager.wsgi.application'
-
-# Database
 
 DATABASES = {
     'default': {
@@ -90,8 +89,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'core.User'
 
-
-
 # Email settings for Gmail SMTP
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -105,6 +102,8 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SESSION_COOKIE_AGE = 15 * 60  # 15 minutes
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-CRONJOBS = [
-    ('*/1 * * * *', 'core.cron.check_reminders', '>> ' + str(BASE_DIR / 'cron.log')),
-]
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
