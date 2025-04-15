@@ -7,7 +7,7 @@ from datetime import timedelta
 import random
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 from .models import User, OTP, Program, Module, StudentProgram, Resource, Assignment, Submission, Result, Reminder, Announcement
 #from ml_models.gpa_predictor import predict_gpa
 #from ml_models.course_recommender import recommend_courses
@@ -284,9 +284,9 @@ def student_gpa_prediction(request):
         student_data = {'grades': grades, 'attendance': attendance}
         predicted_gpa = predict_gpa(student_data)
         return render(request, 'student_gpa_prediction.html', {'predicted_gpa': predicted_gpa})
-    return render(request, 'student_gpa_prediction.html')'''
+    return render(request, 'student_gpa_prediction.html')
 
-'''# Student: Course Recommendation
+# Student: Course Recommendation
 def student_course_recommendation(request):
     if not request.user.is_authenticated or request.user.role != 'student':
         return redirect('homepage')

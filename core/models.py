@@ -42,15 +42,16 @@ class Module(models.Model):
         return f"{self.code} - {self.name}"
 
 class StudentProgram(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='studentprogram_set')
-    program = models.ForeignKey(Program, on_delete=models.CASCADE)
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='enrolled_programs')
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='enrolled_students')
+    enrolled_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.student.username} - {self.program.name}"
 
 class Resource(models.Model):
     title = models.CharField(max_length=100)
-    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='resources')    
     file = models.FileField(upload_to='resources/')
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
     uploaded_at = models.DateTimeField(auto_now_add=True)
