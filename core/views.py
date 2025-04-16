@@ -15,9 +15,9 @@ from .models import User, OTP, Program, Module, StudentProgram, Resource, Assign
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST['username']
+        email = request.POST['email']  # Changed from username
         password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, email=email, password=password)  # Changed from username
         if user is not None:
             login(request, user)
             if user.role == 'student':
@@ -245,12 +245,18 @@ def admin_assign_teacher(request, module_id):
 def student_dashboard_view(request):
     if not request.user.is_authenticated or request.user.role != 'student':
         return redirect('homepage')
+    
     student_programs = StudentProgram.objects.filter(student=request.user)
+    if not student_programs.exists():
+        messages.info(request, 'Please choose a program to continue.')
+        return redirect('student_choose_program')
+    
     modules = Module.objects.filter(program__studentprogram__student=request.user)
     resources = Resource.objects.filter(module__program__studentprogram__student=request.user)
     assignments = Assignment.objects.filter(module__program__studentprogram__student=request.user)
     results = Result.objects.filter(student=request.user)
     reminders = Reminder.objects.filter(user=request.user)
+    
     context = {
         'student_programs': student_programs,
         'modules': modules,
@@ -260,6 +266,7 @@ def student_dashboard_view(request):
         'reminders': reminders,
     }
     return render(request, 'student_dashboard.html', context)
+
 
 # Student: Choose Program
 def student_choose_program(request):

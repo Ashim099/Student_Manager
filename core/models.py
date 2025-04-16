@@ -4,9 +4,13 @@ from django.utils import timezone
 from datetime import timedelta
 
 class User(AbstractUser):
-    ROLES = (('student', 'Student'), ('teacher', 'Teacher'), ('admin', 'Admin'))
-    role = models.CharField(max_length=10, choices=ROLES, default='student')
+    ROLES = (
+        ('student', 'Student'),
+        ('teacher', 'Teacher'),
+        ('admin', 'Admin'),
+    )
     email = models.EmailField(unique=True)
+    role = models.CharField(max_length=10, choices=ROLES, default='student')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

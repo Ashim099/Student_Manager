@@ -4,7 +4,7 @@ from .views import (homepage_view, signup_view, verify_otp_signup, student_login
                     admin_create_program, admin_create_module, admin_assign_teacher, student_choose_program,
                      student_pomodoro_timer, student_set_reminder,
                     student_submit_assignment, teacher_manage_resources, teacher_delete_resource, teacher_share_assignment,
-                    teacher_post_announcement, teacher_publish_result)
+                    teacher_post_announcement, teacher_publish_result, login_view)
 
 #student_gpa_prediction, student_course_recommendation <views import>
 
@@ -12,6 +12,7 @@ urlpatterns = [
     path('', homepage_view, name='homepage'),
     path('signup/', signup_view, name='signup'),
     path('verify-otp-signup/', verify_otp_signup, name='verify_otp_signup'),
+    path('login/', login_view, name='login'),
     path('student/login/', student_login, name='student_login'),
     path('teacher/login/', teacher_login, name='teacher_login'),
     path('admin/login/', admin_login, name='admin_login'),
