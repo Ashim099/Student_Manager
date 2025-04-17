@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Module - Student Manager</title>
+    <title>Edit User - Student Manager</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
         .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -18,7 +18,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>Create New Module</h2>
+        <h2>Edit User: {{ user.username }}</h2>
         {% if messages %}
             <div class="messages">
                 {% for message in messages %}
@@ -29,31 +29,22 @@
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label for="code">Module Code</label>
-                <input type="text" id="code" name="code" required>
+                <label for="email">Email</label>
+                {{ form.email }}
             </div>
             <div class="form-group">
-                <label for="name">Module Name</label>
-                <input type="text" id="name" name="name" required>
+                <label for="username">Username</label>
+                {{ form.username }}
             </div>
             <div class="form-group">
-                <label for="program">Program</label>
-                <select id="program" name="program" required>
-                    {% for program in programs %}
-                        <option value="{{ program.id }}">{{ program.name }}</option>
-                    {% endfor %}
-                </select>
+                <label for="role">Role</label>
+                {{ form.role }}
             </div>
             <div class="form-group">
-                <label for="teacher">Teacher</label>
-                <select id="teacher" name="teacher">
-                    <option value="">None</option>
-                    {% for teacher in teachers %}
-                        <option value="{{ teacher.id }}">{{ teacher.username }}</option>
-                    {% endfor %}
-                </select>
+                <label for="password">Password (leave blank to keep unchanged)</label>
+                {{ form.password }}
             </div>
-            <button type="submit">Create Module</button>
+            <button type="submit">Update User</button>
             <a href="{% url 'admin_dashboard' %}" style="margin-left: 10px;">Cancel</a>
         </form>
     </div>

@@ -8,8 +8,7 @@ from datetime import timedelta
 import random
 from django_ratelimit.decorators import ratelimit
 from .models import User, OTP, Program, Module, StudentProgram, Resource, Assignment, Submission, Result, Reminder, Announcement
-# from ml_models.gpa_predictor import predict_gpa
-# from ml_models.course_recommender import recommend_courses
+from .forms import AdminAddUserForm  # Import the new form
 
 # Role-based access decorator
 def role_required(role):
@@ -32,7 +31,7 @@ def login_view(request):
         password = request.POST['password']
         user = authenticate(request, email=email, password=password)
         if user is not None:
-            login(request, user)  # Backend is set by authenticate
+            login(request, user)
             if user.role == 'student':
                 return redirect('student_dashboard')
             elif user.role == 'teacher':
@@ -105,7 +104,6 @@ def verify_otp_signup(request):
             user.is_active = True
             user.save()
             otp_record.delete()
-            # Set the backend attribute before login
             user.backend = 'core.authentication.EmailBackend'
             login(request, user)
             del request.session['signup_email']
@@ -171,7 +169,6 @@ def verify_otp(request):
             if timezone.now() > otp_record.expires_at:
                 messages.error(request, 'OTP has expired. Please request a new one.')
                 return redirect(f'{role}_login')
-            # Set the backend attribute before login
             user.backend = 'core.authentication.EmailBackend'
             login(request, user)
             otp_record.delete()
@@ -209,6 +206,51 @@ def admin_dashboard_view(request):
     }
     return render(request, 'admin_dashboard.html', context)
 
+# Admin: Add User
+@login_required
+@role_required('admin')
+def admin_add_user(request):
+    if request.method == 'POST':
+        form = AdminAddUserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'User {user.username} added successfully.')
+            return redirect('admin_dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminAddUserForm()
+    return render(request, 'admin_add_user.html', {'form': form})
+
+# Admin: Edit User
+@login_required
+@role_required('admin')
+def admin_edit_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        form = AdminAddUserForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'User {user.username} updated successfully.')
+            return redirect('admin_dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminAddUserForm(instance=user)
+    return render(request, 'admin_edit_user.html', {'form': form, 'user': user})
+
+# Admin: Delete User
+@login_required
+@role_required('admin')
+def admin_delete_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if user == request.user:
+        messages.error(request, 'You cannot delete your own account.')
+        return redirect('admin_dashboard')
+    user.delete()
+    messages.success(request, f'User {user.username} deleted successfully.')
+    return redirect('admin_dashboard')
+
 # Admin: Create Program
 @login_required
 @role_required('admin')
@@ -221,12 +263,37 @@ def admin_create_program(request):
         return redirect('admin_dashboard')
     return render(request, 'admin_create_program.html')
 
+# Admin: Edit Program
+@login_required
+@role_required('admin')
+def admin_edit_program(request, program_id):
+    program = get_object_or_404(Program, id=program_id)
+    if request.method == 'POST':
+        program.name = request.POST.get('name')
+        program.description = request.POST.get('description')
+        program.save()
+        messages.success(request, 'Program updated successfully.')
+        return redirect('admin_dashboard')
+    return render(request, 'admin_edit_program.html', {'program': program})
+
+# Admin: Delete Program
+@login_required
+@role_required('admin')
+def admin_delete_program(request, program_id):
+    program = get_object_or_404(Program, id=program_id)
+    program.delete()
+    messages.success(request, 'Program deleted successfully.')
+    return redirect('admin_dashboard')
+
 # Admin: Create Module
 @login_required
 @role_required('admin')
 def admin_create_module(request):
     programs = Program.objects.all()
     teachers = User.objects.filter(role='teacher')
+    if not teachers.exists():
+        messages.warning(request, 'No teachers available. Please add a teacher first.')
+        return redirect('admin_add_user')
     if request.method == 'POST':
         code = request.POST.get('code')
         name = request.POST.get('name')
@@ -239,12 +306,46 @@ def admin_create_module(request):
         return redirect('admin_dashboard')
     return render(request, 'admin_create_module.html', {'programs': programs, 'teachers': teachers})
 
+# Admin: Edit Module
+@login_required
+@role_required('admin')
+def admin_edit_module(request, module_id):
+    module = get_object_or_404(Module, id=module_id)
+    programs = Program.objects.all()
+    teachers = User.objects.filter(role='teacher')
+    if not teachers.exists():
+        messages.warning(request, 'No teachers available. Please add a teacher first.')
+        return redirect('admin_add_user')
+    if request.method == 'POST':
+        module.code = request.POST.get('code')
+        module.name = request.POST.get('name')
+        program_id = request.POST.get('program')
+        teacher_id = request.POST.get('teacher')
+        module.program = get_object_or_404(Program, id=program_id)
+        module.teacher = get_object_or_404(User, id=teacher_id, role='teacher') if teacher_id else None
+        module.save()
+        messages.success(request, 'Module updated successfully.')
+        return redirect('admin_dashboard')
+    return render(request, 'admin_edit_module.html', {'module': module, 'programs': programs, 'teachers': teachers})
+
+# Admin: Delete Module
+@login_required
+@role_required('admin')
+def admin_delete_module(request, module_id):
+    module = get_object_or_404(Module, id=module_id)
+    module.delete()
+    messages.success(request, 'Module deleted successfully.')
+    return redirect('admin_dashboard')
+
 # Admin: Assign Teacher to Module
 @login_required
 @role_required('admin')
 def admin_assign_teacher(request, module_id):
     module = get_object_or_404(Module, id=module_id)
     teachers = User.objects.filter(role='teacher')
+    if not teachers.exists():
+        messages.warning(request, 'No teachers available. Please add a teacher first.')
+        return redirect('admin_add_user')
     if request.method == 'POST':
         teacher_id = request.POST.get('teacher')
         teacher = get_object_or_404(User, id=teacher_id, role='teacher')
@@ -262,10 +363,16 @@ def admin_enroll_student(request, program_id):
     if request.method == 'POST':
         student_id = request.POST.get('student')
         student = get_object_or_404(User, id=student_id, role='student')
-        StudentProgram.objects.create(student=student, program=program)
-        messages.success(request, 'Student enrolled successfully.')
+        if StudentProgram.objects.filter(student=student, program=program).exists():
+            messages.error(request, 'Student is already enrolled in this program.')
+        else:
+            StudentProgram.objects.create(student=student, program=program)
+            messages.success(request, 'Student enrolled successfully.')
         return redirect('admin_dashboard')
     students = User.objects.filter(role='student')
+    if not students.exists():
+        messages.warning(request, 'No students available. Please add a student first.')
+        return redirect('admin_add_user')
     return render(request, 'admin_enroll_student.html', {'program': program, 'students': students})
 
 # Student Dashboard View
@@ -279,10 +386,9 @@ def student_dashboard_view(request):
     
     modules = Module.objects.filter(program__studentprogram__student=request.user)
     resources = Resource.objects.filter(module__program__studentprogram__student=request.user)
-    assignments = Assignment.objects.filter(module__studentprogram__student=request.user)
+    assignments = Assignment.objects.filter(module__program__studentprogram__student=request.user)
     results = Result.objects.filter(student=request.user)
     reminders = Reminder.objects.filter(student=request.user)
-    # Add announcements for enrolled modules
     enrolled_modules = Module.objects.filter(program__in=[sp.program for sp in student_programs])
     student_announcements = Announcement.objects.filter(module__in=enrolled_modules)
     
@@ -322,7 +428,7 @@ def student_pomodoro_timer(request):
 def student_set_reminder(request):
     if request.method == 'POST':
         title = request.POST.get('title')
-        reminder_date = request.POST.get('due_date')  # Changed to match Reminder model field
+        reminder_date = request.POST.get('due_date')
         Reminder.objects.create(student=request.user, title=title, reminder_date=reminder_date)
         messages.success(request, 'Reminder set successfully.')
         return redirect('student_dashboard')
@@ -345,12 +451,11 @@ def student_submit_assignment(request, assignment_id):
 @role_required('teacher')
 def teacher_dashboard_view(request):
     teacher_modules = Module.objects.filter(teacher=request.user)
-    # Calculate passing percentage for each module
     for module in teacher_modules:
         results = Result.objects.filter(module=module)
         total_students = StudentProgram.objects.filter(program=module.program).count()
         if total_students > 0:
-            passing_students = results.filter(grade__gte=50).count()  # Assuming 50 is the passing grade
+            passing_students = results.filter(grade__gte=50).count()
             module.passing_percentage = (passing_students / total_students) * 100
         else:
             module.passing_percentage = 0
@@ -404,7 +509,7 @@ def teacher_share_assignment(request, module_id):
     if request.method == 'POST':
         title = request.POST.get('title')
         due_date = request.POST.get('due_date')
-        description = request.POST.get('description', '')  # Added to match Assignment model
+        description = request.POST.get('description', '')
         Assignment.objects.create(title=title, description=description, module=module, due_date=due_date, created_by=request.user)
         messages.success(request, 'Assignment shared successfully.')
         return redirect('teacher_dashboard')

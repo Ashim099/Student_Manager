@@ -2,13 +2,12 @@ from django.urls import path
 from .views import (
     homepage_view, signup_view, verify_otp_signup, login_view, student_login, teacher_login, admin_login,
     verify_otp, logout_view, admin_dashboard_view, admin_create_program, admin_create_module, admin_assign_teacher,
-    admin_enroll_student, teacher_dashboard_view, teacher_manage_resources, teacher_delete_resource,
+    admin_enroll_student, admin_add_user, admin_edit_user, admin_delete_user, admin_edit_program, admin_delete_program,
+    admin_edit_module, admin_delete_module, teacher_dashboard_view, teacher_manage_resources, teacher_delete_resource,
     teacher_share_assignment, teacher_post_announcement, teacher_publish_result, student_dashboard_view,
     student_choose_program, student_pomodoro_timer, student_set_reminder, student_submit_assignment
 )
-
 # student_gpa_prediction, student_course_recommendation
-
 urlpatterns = [
     path('', homepage_view, name='homepage'),
     path('signup/', signup_view, name='signup'),
@@ -20,8 +19,15 @@ urlpatterns = [
     path('verify-otp/', verify_otp, name='verify_otp'),
     path('logout/', logout_view, name='logout'),
     path('admin/dashboard/', admin_dashboard_view, name='admin_dashboard'),
+    path('admin/add-user/', admin_add_user, name='admin_add_user'),
+    path('admin/edit-user/<int:user_id>/', admin_edit_user, name='admin_edit_user'),
+    path('admin/delete-user/<int:user_id>/', admin_delete_user, name='admin_delete_user'),
     path('admin/create-program/', admin_create_program, name='admin_create_program'),
+    path('admin/edit-program/<int:program_id>/', admin_edit_program, name='admin_edit_program'),
+    path('admin/delete-program/<int:program_id>/', admin_delete_program, name='admin_delete_program'),
     path('admin/create-module/', admin_create_module, name='admin_create_module'),
+    path('admin/edit-module/<int:module_id>/', admin_edit_module, name='admin_edit_module'),
+    path('admin/delete-module/<int:module_id>/', admin_delete_module, name='admin_delete_module'),
     path('admin/assign-teacher/<int:module_id>/', admin_assign_teacher, name='admin_assign_teacher'),
     path('admin/enroll-student/<int:program_id>/', admin_enroll_student, name='admin_enroll_student'),
     path('teacher/dashboard/', teacher_dashboard_view, name='teacher_dashboard'),
@@ -35,7 +41,4 @@ urlpatterns = [
     path('student/pomodoro-timer/', student_pomodoro_timer, name='student_pomodoro_timer'),
     path('student/set-reminder/', student_set_reminder, name='student_set_reminder'),
     path('student/submit-assignment/<int:assignment_id>/', student_submit_assignment, name='student_submit_assignment'),
-    # Uncomment these paths when ML models are implemented
-    # path('student/gpa-prediction/', student_gpa_prediction, name='student_gpa_prediction'),
-    # path('student/course-recommendation/', student_course_recommendation, name='student_course_recommendation'),
 ]
