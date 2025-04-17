@@ -1,196 +1,282 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container py-5">
-    <h2 class="text-center mb-5 animate__animated animate__fadeIn">Student Dashboard</h2>
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
-                {{ message }}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard - Student Manager</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #1a2a44; 
+            margin: 0; 
+            padding: 20px; 
+            color: #e0e7ff; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: #2a3b5a; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.3); 
+        }
+        h2 { color: #e0e7ff; }
+        h3 { color: #a3bffa; }
+        .section { margin-bottom: 30px; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+            background: #334876; 
+        }
+        th, td { 
+            padding: 10px; 
+            border: 1px solid #4a6fa5; 
+            text-align: left; 
+        }
+        th { background-color: #4a6fa5; color: #e0e7ff; }
+        td { color: #d6deff; }
+        .btn { 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            text-decoration: none; 
+            color: white; 
+            margin-right: 5px; 
+        }
+        .btn-action { background-color: #17a2b8; }
+        .btn-action:hover { background-color: #138496; }
+        .messages { margin-bottom: 20px; }
+        .messages .success { color: #28a745; }
+        .messages .info { color: #17a2b8; }
+        .messages .error { color: #dc3545; }
+        a { color: #a3bffa; }
+        a:hover { color: #c3d7ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Student Dashboard</h2>
+        <p>Welcome, {{ request.user.username }}! <a href="{% url 'logout' %}">Logout</a></p>
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <p class="{{ message.tags }}">{{ message }}</p>
+                {% endfor %}
             </div>
-        {% endfor %}
-    {% endif %}
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <a href="{% url 'student_choose_program' %}" class="btn btn-primary w-100 mb-3">Choose Program</a>
+        {% endif %}
+
+        <!-- Noticeboard (Announcements) -->
+        <div class="section">
+            <h3>Noticeboard</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Content</th>
+                        <th>Module</th>
+                        <th>File</th>
+                        <th>Posted By</th>
+                        <th>Posted At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for announcement in student_announcements %}
+                        <tr>
+                            <td>{{ announcement.title }}</td>
+                            <td>{{ announcement.content }}</td>
+                            <td>{{ announcement.module.name }}</td>
+                            <td>
+                                {% if announcement.file %}
+                                    <a href="{{ announcement.file.url }}" target="_blank">Download</a>
+                                {% else %}
+                                    No file
+                                {% endif %}
+                            </td>
+                            <td>{{ announcement.created_by.username }}</td>
+                            <td>{{ announcement.created_at }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6">No announcements available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <div class="col-md-4">
-            <!--a href="{% url 'student_gpa_prediction' %}" class="btn btn-primary w-100 mb-3">Predict GPA</a-->
+
+        <!-- Enrolled Programs -->
+        <div class="section">
+            <h3>My Programs</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Enrolled At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for program in student_programs %}
+                        <tr>
+                            <td>{{ program.program.name }}</td>
+                            <td>{{ program.program.description }}</td>
+                            <td>{{ program.enrolled_at }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3">No programs enrolled.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <div class="col-md-4">
-            <!--a href="{% url 'student_course_recommendation' %}" class="btn btn-primary w-100 mb-3">Course Recommendations</a-->
+
+        <!-- Modules -->
+        <div class="section">
+            <h3>My Modules</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Program</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for module in modules %}
+                        <tr>
+                            <td>{{ module.code }}</td>
+                            <td>{{ module.name }}</td>
+                            <td>{{ module.program.name }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3">No modules available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Resources -->
+        <div class="section">
+            <h3>Resources</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Module</th>
+                        <th>Uploaded By</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for resource in resources %}
+                        <tr>
+                            <td>{{ resource.title }}</td>
+                            <td>{{ resource.module.name }}</td>
+                            <td>{{ resource.uploaded_by.username }}</td>
+                            <td><a href="{{ resource.file.url }}" target="_blank">Download</a></td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">No resources available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Assignments -->
+        <div class="section">
+            <h3>Assignments</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Module</th>
+                        <th>Due Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in assignments %}
+                        <tr>
+                            <td>{{ assignment.title }}</td>
+                            <td>{{ assignment.module.name }}</td>
+                            <td>{{ assignment.due_date }}</td>
+                            <td>
+                                <a href="{% url 'student_submit_assignment' assignment.id %}" class="btn btn-action">Submit</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">No assignments available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Results -->
+        <div class="section">
+            <h3>My Results</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Module</th>
+                        <th>Grade</th>
+                        <th>Published At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                        <tr>
+                            <td>{{ result.module.name }}</td>
+                            <td>{{ result.grade }}</td>
+                            <td>{{ result.published_at }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3">No results available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Reminders -->
+        <div class="section">
+            <h3>My Reminders</h3>
+            <a href="{% url 'student_set_reminder' %}" class="btn btn-action">Set Reminder</a>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Reminder Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reminder in reminders %}
+                        <tr>
+                            <td>{{ reminder.title }}</td>
+                            <td>{{ reminder.reminder_date }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="2">No reminders set.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Additional Features -->
+        <div class="section">
+            <h3>Additional Features</h3>
+            <a href="{% url 'student_pomodoro_timer' %}" class="btn btn-action">Pomodoro Timer</a>
+            <!-- Uncomment when ML features are implemented -->
+            <!-- <a href="{% url 'student_gpa_prediction' %}" class="btn btn-action">GPA Prediction</a> -->
+            <!-- <a href="{% url 'student_course_recommendation' %}" class="btn btn-action">Course Recommendation</a> -->
         </div>
     </div>
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <a href="{% url 'student_pomodoro_timer' %}" class="btn btn-primary w-100 mb-3">Pomodoro Timer</a>
-        </div>
-        <div class="col-md-4">
-            <a href="{% url 'student_set_reminder' %}" class="btn btn-primary w-100 mb-3">Set Reminder</a>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-12 col-md-6 mb-4">
-            <div class="card dashboard-card animate__animated animate__fadeIn">
-                <div class="card-body">
-                    <h5 class="card-title">Enrolled Programs</h5>
-                    {% if student_programs %}
-                        <ul class="list-group">
-                            {% for sp in student_programs %}
-                                <li class="list-group-item">{{ sp.program.name }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p>No programs enrolled.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 mb-4">
-            <div class="card dashboard-card animate__animated animate__fadeIn">
-                <div class="card-body">
-                    <h5 class="card-title">Modules</h5>
-                    {% if modules %}
-                        <ul class="list-group">
-                            {% for module in modules %}
-                                <li class="list-group-item">{{ module.code }} - {{ module.name }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p>No modules available.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <div class="col-12 mb-4">
-            <div class="card dashboard-card animate__animated animate__fadeIn">
-                <div class="card-body">
-                    <h5 class="card-title">Study Resources</h5>
-                    {% if resources %}
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Module</th>
-                                        <th>File</th>
-                                        <th>Uploaded At</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for resource in resources %}
-                                        <tr>
-                                            <td>{{ resource.title }}</td>
-                                            <td>{{ resource.module.code }}</td>
-                                            <td><a href="{{ resource.file.url }}" target="_blank" class="text-gold">Download</a></td>
-                                            <td>{{ resource.uploaded_at }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p>No resources available.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <div class="col-12 mb-4">
-            <div class="card dashboard-card animate__animated animate__fadeIn">
-                <div class="card-body">
-                    <h5 class="card-title">Assignments</h5>
-                    {% if assignments %}
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Module</th>
-                                        <th>Due Date</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for assignment in assignments %}
-                                        <tr>
-                                            <td>{{ assignment.title }}</td>
-                                            <td>{{ assignment.module.code }}</td>
-                                            <td>{{ assignment.due_date }}</td>
-                                            <td>
-                                                <a href="{% url 'student_submit_assignment' assignment.id %}" class="btn btn-primary btn-sm">Submit</a>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p>No assignments available.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <div class="col-12 mb-4">
-            <div class="card dashboard-card animate__animated animate__fadeIn">
-                <div class="card-body">
-                    <h5 class="card-title">Results</h5>
-                    {% if results %}
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Module</th>
-                                        <th>Grade</th>
-                                        <th>Published At</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for result in results %}
-                                        <tr>
-                                            <td>{{ result.module.code }}</td>
-                                            <td>{{ result.grade }}</td>
-                                            <td>{{ result.published_at }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p>No results available.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <div class="col-12 mb-4">
-            <div class="card dashboard-card animate__animated animate__fadeIn">
-                <div class="card-body">
-                    <h5 class="card-title">Reminders</h5>
-                    {% if reminders %}
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Due Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for reminder in reminders %}
-                                        <tr>
-                                            <td>{{ reminder.title }}</td>
-                                            <td>{{ reminder.due_date }}</td>
-                                            <td>{{ reminder.is_notified|yesno:"Notified,Pending" }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p>No reminders set.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+</body>
+</html>

@@ -8,7 +8,7 @@ from datetime import timedelta
 import random
 from django_ratelimit.decorators import ratelimit
 from .models import User, OTP, Program, Module, StudentProgram, Resource, Assignment, Submission, Result, Reminder, Announcement
-from .forms import AdminAddUserForm  # Import the new form
+from .forms import AdminAddUserForm
 
 # Role-based access decorator
 def role_required(role):
@@ -526,7 +526,8 @@ def teacher_post_announcement(request, module_id):
     if request.method == 'POST':
         title = request.POST.get('title')
         content = request.POST.get('content')
-        Announcement.objects.create(title=title, content=content, module=module, created_by=request.user)
+        file = request.FILES.get('file') if 'file' in request.FILES else None
+        Announcement.objects.create(title=title, content=content, module=module, file=file, created_by=request.user)
         messages.success(request, 'Announcement posted successfully.')
         return redirect('teacher_dashboard')
     return render(request, 'teacher_post_announcement.html', {'module': module})
