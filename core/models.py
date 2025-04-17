@@ -19,7 +19,7 @@ class User(AbstractUser):
         return f"{self.username} ({self.role})"
 
 class OTP(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otps')
     otp = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
@@ -30,7 +30,7 @@ class OTP(models.Model):
 class Program(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_programs')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -40,7 +40,7 @@ class Module(models.Model):
     code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=100)
     program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='modules')
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='modules_taught', null=True, blank=True)
+    teacher = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='taught_modules')
 
     def __str__(self):
         return f"{self.code} - {self.name}"
@@ -57,7 +57,7 @@ class Resource(models.Model):
     title = models.CharField(max_length=100)
     module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='resources')    
     file = models.FileField(upload_to='resources/')
-    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='uploaded_resources')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -65,16 +65,18 @@ class Resource(models.Model):
 
 class Assignment(models.Model):
     title = models.CharField(max_length=100)
-    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    description = models.TextField(blank=True)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='assignments')
     due_date = models.DateTimeField()
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_assignments')
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
 
 class Submission(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
-    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='submissions')
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions')
     file = models.FileField(upload_to='submissions/')
     submitted_at = models.DateTimeField(auto_now_add=True)
 
@@ -82,10 +84,10 @@ class Submission(models.Model):
         return f"{self.student.username} - {self.assignment.title}"
 
 class Result(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
-    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='results')
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='results')
     grade = models.FloatField()
-    published_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='results_published')
+    published_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='published_results')
     published_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -93,8 +95,9 @@ class Result(models.Model):
 
 class Reminder(models.Model):
     title = models.CharField(max_length=100)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    due_date = models.DateTimeField()
+    description = models.TextField(blank=True)
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reminders')  # Renamed from 'user' to 'student'
+    reminder_date = models.DateTimeField()  # Renamed from 'due_date'
     is_notified = models.BooleanField(default=False)
 
     def __str__(self):
@@ -103,9 +106,9 @@ class Reminder(models.Model):
 class Announcement(models.Model):
     title = models.CharField(max_length=100)
     content = models.TextField()
-    module = models.ForeignKey(Module, on_delete=models.CASCADE)
-    posted_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    posted_at = models.DateTimeField(auto_now_add=True)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='announcements')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='announcements')  # Added field
+    created_at = models.DateTimeField(auto_now_add=True)  # Added field
 
     def __str__(self):
         return self.title
