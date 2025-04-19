@@ -68,6 +68,35 @@
             <button type="submit">Upload Resource</button>
             <a href="{% url 'teacher_dashboard' %}" style="margin-left: 10px;">Cancel</a>
         </form>
+        <h3>My Resources</h3>
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>File</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for resource in resources %}
+                <tr>
+                    <td>{{ resource.title }}</td>
+                    <td>
+                        {% if resource.file %}
+                            <a href="{{ resource.file.url }}" class="btn btn-info btn-sm">Download</a>
+                        {% else %}
+                            No file
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'teacher_edit_resource' resource.id %}" class="btn btn-warning btn-sm me-2">Edit</a>
+                        <a href="{% url 'teacher_delete_resource' resource.id %}" class="btn btn-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
     </div>
 </body>
 </html>

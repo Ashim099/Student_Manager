@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5" style="background-color: #2a3b5a; padding: 20px; border-radius: 8px; color: #e0e7ff;">
+    <h2 style="color: #e0e7ff;">Edit Announcement</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_title" class="form-label" style="color: #e0e7ff;">Title</label>
+            {{ form.title }}
+        </div>
+        <div class="mb-3">
+            <label for="id_content" class="form-label" style="color: #e0e7ff;">Content</label>
+            {{ form.content }}
+        </div>
+        <div class="mb-3">
+            <label for="id_file" class="form-label" style="color: #e0e7ff;">File (Leave blank to keep existing)</label>
+            {{ form.file }}
+            {% if announcement.file %}
+                <p style="color: #e0e7ff;">Current file: <a href="{{ announcement.file.url }}" style="color: #17a2b8;">{{ announcement.file.name }}</a></p>
+            {% endif %}
+        </div>
+        {{ form.module }}
+        <button type="submit" class="btn btn-success me-2" style="background-color: #28a745;">Save Changes</button>
+        <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary" style="background-color: #17a2b8;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

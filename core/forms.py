@@ -1,5 +1,5 @@
 from django import forms
-from .models import User
+from .models import User, Resource, Assignment, Announcement
 
 class AdminAddUserForm(forms.ModelForm):
     role = forms.ChoiceField(choices=[('student', 'Student'), ('teacher', 'Teacher')], label="Role")
@@ -16,3 +16,28 @@ class AdminAddUserForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+    
+class ResourceForm(forms.ModelForm):
+    class Meta:
+        model = Resource
+        fields = ['title', 'file', 'module']
+        widgets = {
+            'module': forms.HiddenInput(),
+        }
+
+class AssignmentForm(forms.ModelForm):
+    class Meta:
+        model = Assignment
+        fields = ['title', 'description', 'due_date', 'module']
+        widgets = {
+            'due_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'module': forms.HiddenInput(),
+        }
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ['title', 'content', 'file', 'module']
+        widgets = {
+            'module': forms.HiddenInput(),
+        }

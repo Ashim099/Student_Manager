@@ -10,6 +10,8 @@ from django_ratelimit.decorators import ratelimit
 from .models import User, OTP, Program, Module, StudentProgram, Resource, Assignment, Submission, Result, Reminder, Announcement
 from .forms import AdminAddUserForm
 from django.http import HttpResponseForbidden
+from .forms import ResourceForm, AssignmentForm, AnnouncementForm
+
 
 
 # Role-based access decorator
@@ -452,25 +454,25 @@ def student_submit_assignment(request, assignment_id):
 @login_required
 @role_required('teacher')
 def teacher_dashboard_view(request):
-    teacher_modules = Module.objects.filter(teacher=request.user)
-    for module in teacher_modules:
+    teacher = request.user
+    modules = Module.objects.filter(teacher=teacher)
+
+    for module in modules:
         results = Result.objects.filter(module=module)
         total_students = StudentProgram.objects.filter(program=module.program).count()
-        if total_students > 0:
-            passing_students = results.filter(grade__gte=50).count()
-            module.passing_percentage = (passing_students / total_students) * 100
-        else:
-            module.passing_percentage = 0
-    resources = Resource.objects.filter(uploaded_by=request.user)
-    assignments = Assignment.objects.filter(created_by=request.user)
-    announcements = Announcement.objects.filter(created_by=request.user)
+        module.passing_percentage = (
+            (results.filter(grade__gte=50).count() / total_students) * 100
+            if total_students > 0 else 0
+        )
+
     context = {
-        'teacher_modules': teacher_modules,
-        'resources': resources,
-        'assignments': assignments,
-        'announcements': announcements,
+        'modules': modules,
+        'resources': Resource.objects.filter(uploaded_by=teacher),
+        'assignments': Assignment.objects.filter(created_by=teacher),
+        'announcements': Announcement.objects.filter(created_by=teacher),
     }
     return render(request, 'teacher_dashboard.html', context)
+
 
 # Teacher: Manage Resources (CRUD - Create)
 @login_required
@@ -488,17 +490,28 @@ def teacher_manage_resources(request, module_id):
         return redirect('teacher_dashboard')
     return render(request, 'teacher_manage_resources.html', {'module': module})
 
+def teacher_edit_resource(request, resource_id):
+    resource = get_object_or_404(Resource, id=resource_id, uploaded_by=request.user)
+    if request.method == "POST":
+        form = ResourceForm(request.POST, request.FILES, instance=resource)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Resource updated successfully!")
+            return redirect('teacher_manage_resources', module_id=resource.module.id)
+    else:
+        form = ResourceForm(instance=resource)
+    return render(request, 'teacher_edit_resource.html', {'form': form, 'resource': resource})
+
 # Teacher: Delete Resource (CRUD - Delete)
 @login_required
 @role_required('teacher')
 def teacher_delete_resource(request, resource_id):
-    resource = get_object_or_404(Resource, id=resource_id)
-    if resource.uploaded_by != request.user:
-        messages.error(request, 'You do not have permission to delete this resource.')
-        return redirect('teacher_dashboard')
-    resource.delete()
-    messages.success(request, 'Resource deleted successfully.')
-    return redirect('teacher_dashboard')
+    resource = get_object_or_404(Resource, id=resource_id, uploaded_by=request.user)
+    if request.method == "POST":
+        resource.delete()
+        messages.success(request, "Resource deleted successfully!")
+        return redirect('teacher_manage_resources', module_id=resource.module.id)
+    return render(request, 'teacher_confirm_delete.html', {'object': resource})
 
 # Teacher: Share Assignment
 @login_required
@@ -517,6 +530,26 @@ def teacher_share_assignment(request, module_id):
         return redirect('teacher_dashboard')
     return render(request, 'teacher_share_assignment.html', {'module': module})
 
+def teacher_edit_assignment(request, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, created_by=request.user)
+    if request.method == "POST":
+        form = AssignmentForm(request.POST, instance=assignment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Assignment updated successfully!")
+            return redirect('teacher_dashboard')
+    else:
+        form = AssignmentForm(instance=assignment)
+    return render(request, 'teacher_edit_assignment.html', {'form': form, 'assignment': assignment})
+
+def teacher_delete_assignment(request, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, created_by=request.user)
+    if request.method == "POST":
+        assignment.delete()
+        messages.success(request, "Assignment deleted successfully!")
+        return redirect('teacher_dashboard')
+    return render(request, 'teacher_confirm_delete.html', {'object': assignment})
+
 # Teacher: Post Announcement
 @login_required
 @role_required('teacher')
@@ -533,6 +566,18 @@ def teacher_post_announcement(request, module_id):
         messages.success(request, 'Announcement posted successfully.')
         return redirect('teacher_dashboard')
     return render(request, 'teacher_post_announcement.html', {'module': module})
+
+def teacher_edit_announcement(request, announcement_id):
+    announcement = get_object_or_404(Announcement, id=announcement_id, created_by=request.user)
+    if request.method == "POST":
+        form = AnnouncementForm(request.POST, request.FILES, instance=announcement)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Announcement updated successfully!")
+            return redirect('teacher_dashboard')
+    else:
+        form = AnnouncementForm(instance=announcement)
+    return render(request, 'teacher_edit_announcement.html', {'form': form, 'announcement': announcement})
 
 # Teacher: Delete announcements
 def teacher_delete_announcement(request, announcement_id):

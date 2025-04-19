@@ -5,7 +5,9 @@ from .views import (
     admin_enroll_student, admin_add_user, admin_edit_user, admin_delete_user, admin_edit_program, admin_delete_program,
     admin_edit_module, admin_delete_module, teacher_dashboard_view, teacher_manage_resources, teacher_delete_resource,
     teacher_share_assignment, teacher_post_announcement, teacher_publish_result, student_dashboard_view,
-    student_choose_program, student_pomodoro_timer, student_set_reminder, student_submit_assignment, teacher_delete_announcement 
+    student_choose_program, student_pomodoro_timer, student_set_reminder, student_submit_assignment, teacher_delete_announcement,
+    teacher_edit_resource,teacher_edit_announcement,
+    teacher_delete_assignment, teacher_edit_assignment
 )
 # student_gpa_prediction, student_course_recommendation
 urlpatterns = [
@@ -33,10 +35,14 @@ urlpatterns = [
     path('teacher/dashboard/', teacher_dashboard_view, name='teacher_dashboard'),
     path('teacher/manage-resources/<int:module_id>/', teacher_manage_resources, name='teacher_manage_resources'),
     path('teacher/delete-resource/<int:resource_id>/', teacher_delete_resource, name='teacher_delete_resource'),
+    path('teacher/edit-resource/<int:resource_id>/', teacher_edit_resource, name='teacher_edit_resource'),
     path('teacher/share-assignment/<int:module_id>/', teacher_share_assignment, name='teacher_share_assignment'),
+    path('teacher/delete-assignment/<int:assignment_id>/', teacher_delete_assignment, name='teacher_delete_assignment'),
+    path('teacher/edit-assignment/<int:assignment_id>/', teacher_edit_assignment, name='teacher_edit_assignment'),
     path('teacher/post-announcement/<int:module_id>/', teacher_post_announcement, name='teacher_post_announcement'),
-    path('teacher/publish-result/<int:module_id>/', teacher_publish_result, name='teacher_publish_result'),
+    path('teacher/edit-announcement/<int:announcement_id>/', teacher_edit_announcement, name='teacher_edit_announcement'),
     path('teacher/delete-announcement/<int:announcement_id>/', teacher_delete_announcement, name='teacher_delete_announcement'),
+    path('teacher/publish-result/<int:module_id>/', teacher_publish_result, name='teacher_publish_result'),
     path('student/dashboard/', student_dashboard_view, name='student_dashboard'),
     path('student/choose-program/', student_choose_program, name='student_choose_program'),
     path('student/pomodoro-timer/', student_pomodoro_timer, name='student_pomodoro_timer'),
