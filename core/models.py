@@ -112,7 +112,7 @@ class Submission(models.Model):
 class Result(models.Model):
     student = models.ForeignKey(User, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
-    grade = models.FloatField()
+    grade = models.CharField(max_length=10)
     published_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

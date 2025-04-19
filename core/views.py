@@ -9,6 +9,8 @@ import random
 from django_ratelimit.decorators import ratelimit
 from .models import User, OTP, Program, Module, StudentProgram, Resource, Assignment, Submission, Result, Reminder, Announcement
 from .forms import AdminAddUserForm
+from django.http import HttpResponseForbidden
+
 
 # Role-based access decorator
 def role_required(role):
@@ -532,23 +534,48 @@ def teacher_post_announcement(request, module_id):
         return redirect('teacher_dashboard')
     return render(request, 'teacher_post_announcement.html', {'module': module})
 
+# Teacher: Delete announcements
+def teacher_delete_announcement(request, announcement_id):
+    announcement = get_object_or_404(Announcement, id=announcement_id, created_by=request.user)
+    if request.method == "POST":
+        announcement.delete()
+        messages.success(request, "Announcement deleted successfully!")
+        return redirect('teacher_dashboard')
+    return render(request, 'teacher_confirm_delete.html', {'object': announcement})
+
 # Teacher: Publish Result
 @login_required
 @role_required('teacher')
 def teacher_publish_result(request, module_id):
     module = get_object_or_404(Module, id=module_id)
-    if module.teacher != request.user:
-        messages.error(request, 'You do not have permission to publish results for this module.')
-        return redirect('teacher_dashboard')
-    students = User.objects.filter(studentprogram_set__program=module.program, role='student')
-    if request.method == 'POST':
+    teacher = request.user
+
+    # Verify the teacher is assigned to the module
+    if module.teacher != teacher:
+        return HttpResponseForbidden("You are not authorized to publish results for this module.")
+
+    # Get students in the module's program
+    students = User.objects.filter(enrolled_programs__program=module.program, role='student')
+
+    if request.method == "POST":
+        # Handle form submission to publish results
         for student in students:
             grade = request.POST.get(f'grade_{student.id}')
             if grade:
-                Result.objects.create(student=student, module=module, grade=float(grade))
-        messages.success(request, 'Results published successfully.')
+                Result.objects.update_or_create(
+                    student=student,
+                    module=module,
+                    defaults={'grade': grade}
+                )
+        messages.success(request, "Results published successfully!")
         return redirect('teacher_dashboard')
-    return render(request, 'teacher_publish_result.html', {'module': module, 'students': students})
+
+    # GET request: Display form to input grades
+    context = {
+        'module': module,
+        'students': students,
+    }
+    return render(request, 'teacher_publish_result.html', context)
 
 # Commented ML Model Views (to be implemented later)
 '''
