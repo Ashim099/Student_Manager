@@ -1,5 +1,5 @@
 from django import forms
-from .models import User, Resource, Assignment, Announcement
+from .models import User, Resource, Assignment, Announcement, Submission, Reminder
 
 class AdminAddUserForm(forms.ModelForm):
     role = forms.ChoiceField(choices=[('student', 'Student'), ('teacher', 'Teacher')], label="Role")
@@ -40,4 +40,21 @@ class AnnouncementForm(forms.ModelForm):
         fields = ['title', 'content', 'file', 'module']
         widgets = {
             'module': forms.HiddenInput(),
+        }
+
+from .models import Submission
+
+class SubmissionForm(forms.ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['file']
+
+from .models import Reminder
+
+class ReminderForm(forms.ModelForm):
+    class Meta:
+        model = Reminder
+        fields = ['title', 'reminder_date']
+        widgets = {
+            'reminder_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }

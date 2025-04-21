@@ -16,7 +16,8 @@
             <thead>
                 <tr>
                     <th scope="col">Student</th>
-                    <th scope="col">Grade</th>
+                    <th scope="col">Marks</th>
+                    <th scope="col">Grade (A-E / a-e)</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,19 +27,30 @@
                     <td>
                         <input 
                             type="number" 
-                            name="grade_{{ student.id }}" 
+                            name="marks_{{ student.id }}" 
                             class="form-control" 
-                            placeholder="Enter grade"
+                            placeholder="Enter marks"
                             step="0.01" 
                             min="0" 
                             max="100" 
                             required
                         >
                     </td>
+                    <td>
+                        <input 
+                            type="text" 
+                            name="grade_{{ student.id }}" 
+                            class="form-control" 
+                            placeholder="e.g., A, b, C"
+                            pattern="[A-Ea-e]{1}" 
+                            title="Enter grade A-E or a-e" 
+                            required
+                        >
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="2" class="text-center">No students enrolled for this module.</td>
+                    <td colspan="3" class="text-center">No students enrolled for this module.</td>
                 </tr>
                 {% endfor %}
             </tbody>

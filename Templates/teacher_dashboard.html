@@ -2,7 +2,9 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Welcome, {{ request.user.username }}! <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">Logout</a></h2>
+    <h2>Welcome, {{ request.user.username }}! 
+        <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">Logout</a>
+    </h2>
     
     {% if messages %}
         {% for message in messages %}
@@ -121,6 +123,35 @@
                     <a href="{% url 'teacher_edit_announcement' announcement.id %}" class="btn btn-warning btn-sm me-2">Edit</a>
                     <a href="{% url 'teacher_delete_announcement' announcement.id %}" class="btn btn-danger btn-sm">Delete</a>
                 </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Submissions -->
+    <h3>Submissions</h3>
+    <table class="table table-dark">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Assignment</th>
+                <th>File</th>
+                <th>Submitted At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for submission in submissions %}
+            <tr>
+                <td>{{ submission.student.username }}</td>
+                <td>{{ submission.assignment.title }}</td>
+                <td>
+                    {% if submission.file %}
+                        <a href="{{ submission.file.url }}" class="btn btn-info btn-sm">Download</a>
+                    {% else %}
+                        No file
+                    {% endif %}
+                </td>
+                <td>{{ submission.submitted_at }}</td>
             </tr>
             {% endfor %}
         </tbody>

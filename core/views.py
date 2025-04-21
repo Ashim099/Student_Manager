@@ -10,7 +10,7 @@ from django_ratelimit.decorators import ratelimit
 from .models import User, OTP, Program, Module, StudentProgram, Resource, Assignment, Submission, Result, Reminder, Announcement
 from .forms import AdminAddUserForm
 from django.http import HttpResponseForbidden
-from .forms import ResourceForm, AssignmentForm, AnnouncementForm
+from .forms import ResourceForm, AssignmentForm, AnnouncementForm, SubmissionForm, ReminderForm
 
 
 
@@ -383,27 +383,29 @@ def admin_enroll_student(request, program_id):
 @login_required
 @role_required('student')
 def student_dashboard_view(request):
-    student_programs = StudentProgram.objects.filter(student=request.user)
-    if not student_programs.exists():
-        messages.info(request, 'Please choose a program to continue.')
-        return redirect('student_choose_program')
+    student = request.user
+    programs = student.enrolled_programs.all()  # Returns StudentProgram objects
+    modules = Module.objects.filter(program__in=programs.values('program'))
     
-    modules = Module.objects.filter(program__studentprogram__student=request.user)
-    resources = Resource.objects.filter(module__program__studentprogram__student=request.user)
-    assignments = Assignment.objects.filter(module__program__studentprogram__student=request.user)
-    results = Result.objects.filter(student=request.user)
-    reminders = Reminder.objects.filter(student=request.user)
-    enrolled_modules = Module.objects.filter(program__in=[sp.program for sp in student_programs])
-    student_announcements = Announcement.objects.filter(module__in=enrolled_modules)
+    announcements = Announcement.objects.filter(module__in=modules)
+    assignments = Assignment.objects.filter(module__in=modules)
+    resources = Resource.objects.filter(module__in=modules)
+    results = Result.objects.filter(student=student)
+    reminders = Reminder.objects.filter(student=student)
+    submissions = Submission.objects.filter(student=student)
     
+    # Get the first program's name (access via the program field)
+    program_name = programs.first().program.name if programs.exists() else "No Program"
+
     context = {
-        'student_programs': student_programs,
-        'modules': modules,
-        'resources': resources,
+        'announcements': announcements,
         'assignments': assignments,
+        'resources': resources,
         'results': results,
         'reminders': reminders,
-        'student_announcements': student_announcements,
+        'programs': programs,
+        'submissions': submissions,
+        'program_name': program_name,
     }
     return render(request, 'student_dashboard.html', context)
 
@@ -443,12 +445,67 @@ def student_set_reminder(request):
 @role_required('student')
 def student_submit_assignment(request, assignment_id):
     assignment = get_object_or_404(Assignment, id=assignment_id)
-    if request.method == 'POST':
-        file = request.FILES.get('file')
-        Submission.objects.create(student=request.user, assignment=assignment, file=file)
-        messages.success(request, 'Assignment submitted successfully.')
+    student = request.user
+    
+    # Check if student is enrolled in the assignment's module
+    if not assignment.module.program.studentprogram_set.filter(student=student).exists():
+        return HttpResponseForbidden("You are not enrolled in this module.")
+    
+    submission, created = Submission.objects.get_or_create(
+        student=student,
+        assignment=assignment,
+        defaults={'submitted_at': timezone.now()}
+    )
+    
+    if request.method == "POST":
+        form = SubmissionForm(request.POST, request.FILES, instance=submission)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Assignment submitted successfully!")
+            return redirect('student_dashboard')
+    else:
+        form = SubmissionForm(instance=submission)
+    
+    context = {
+        'form': form,
+        'assignment': assignment,
+    }
+    return render(request, 'student_submit_assignment.html', context)
+
+# Student create reminders
+def student_create_reminder(request):
+    if request.method == "POST":
+        form = ReminderForm(request.POST)
+        if form.is_valid():
+            reminder = form.save(commit=False)
+            reminder.student = request.user
+            reminder.save()
+            messages.success(request, "Reminder created successfully!")
+            return redirect('student_dashboard')
+    else:
+        form = ReminderForm()
+    return render(request, 'student_create_reminder.html', {'form': form})
+
+def student_edit_reminder(request, reminder_id):
+    reminder = get_object_or_404(Reminder, id=reminder_id, student=request.user)
+    if request.method == "POST":
+        form = ReminderForm(request.POST, instance=reminder)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Reminder updated successfully!")
+            return redirect('student_dashboard')
+    else:
+        form = ReminderForm(instance=reminder)
+    return render(request, 'student_edit_reminder.html', {'form': form, 'reminder': reminder})
+
+@login_required
+def student_delete_reminder(request, reminder_id):
+    reminder = get_object_or_404(Reminder, id=reminder_id, student__id=request.user.id)
+    if request.method == "POST":
+        reminder.delete()
+        messages.success(request, "Reminder deleted successfully!")
         return redirect('student_dashboard')
-    return render(request, 'student_submit_assignment.html', {'assignment': assignment})
+    return render(request, 'student_confirm_delete.html', {'object': reminder})
 
 # Teacher Dashboard View
 @login_required
@@ -470,6 +527,8 @@ def teacher_dashboard_view(request):
         'resources': Resource.objects.filter(uploaded_by=teacher),
         'assignments': Assignment.objects.filter(created_by=teacher),
         'announcements': Announcement.objects.filter(created_by=teacher),
+        'submissions': Submission.objects.filter(assignment__created_by=teacher),
+        
     }
     return render(request, 'teacher_dashboard.html', context)
 

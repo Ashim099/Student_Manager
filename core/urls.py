@@ -6,8 +6,8 @@ from .views import (
     admin_edit_module, admin_delete_module, teacher_dashboard_view, teacher_manage_resources, teacher_delete_resource,
     teacher_share_assignment, teacher_post_announcement, teacher_publish_result, student_dashboard_view,
     student_choose_program, student_pomodoro_timer, student_set_reminder, student_submit_assignment, teacher_delete_announcement,
-    teacher_edit_resource,teacher_edit_announcement,
-    teacher_delete_assignment, teacher_edit_assignment
+    teacher_edit_resource,teacher_edit_announcement,teacher_delete_assignment, teacher_edit_assignment,
+    student_create_reminder, student_edit_reminder, student_delete_reminder
 )
 # student_gpa_prediction, student_course_recommendation
 urlpatterns = [
@@ -44,8 +44,8 @@ urlpatterns = [
     path('teacher/delete-announcement/<int:announcement_id>/', teacher_delete_announcement, name='teacher_delete_announcement'),
     path('teacher/publish-result/<int:module_id>/', teacher_publish_result, name='teacher_publish_result'),
     path('student/dashboard/', student_dashboard_view, name='student_dashboard'),
-    path('student/choose-program/', student_choose_program, name='student_choose_program'),
-    path('student/pomodoro-timer/', student_pomodoro_timer, name='student_pomodoro_timer'),
-    path('student/set-reminder/', student_set_reminder, name='student_set_reminder'),
     path('student/submit-assignment/<int:assignment_id>/', student_submit_assignment, name='student_submit_assignment'),
+    path('student/create-reminder/', student_create_reminder, name='student_create_reminder'),
+    path('student/edit-reminder/<int:reminder_id>/', student_edit_reminder, name='student_edit_reminder'),
+    path('student/delete-reminder/<int:reminder_id>/', student_delete_reminder, name='student_delete_reminder')
 ]

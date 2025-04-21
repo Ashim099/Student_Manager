@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5" style="background-color: #2a3b5a; padding: 20px; border-radius: 8px; color: #e0e7ff;">
+    <h2 style="color: #e0e7ff;">Edit Reminder</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_title" class="form-label" style="color: #e0e7ff;">Title</label>
+            {{ form.title }}
+        </div>
+        <div class="mb-3">
+            <label for="id_reminder_date" class="form-label" style="color: #e0e7ff;">Reminder Date</label>
+            {{ form.reminder_date }}
+        </div>
+        <button type="submit" class="btn btn-success me-2" style="background-color: #28a745;">Save Changes</button>
+        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary" style="background-color: #17a2b8;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

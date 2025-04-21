@@ -1,29 +1,24 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow animate__animated animate__fadeIn">
-                <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Submit Assignment: {{ assignment.title }}</h2>
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="file" class="form-label">Upload File</label>
-                            <input type="file" class="form-control" id="file" name="file" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Submit Assignment</button>
-                    </form>
-                </div>
-            </div>
+<div class="container mt-5" style="background-color: #2a3b5a; padding: 20px; border-radius: 8px; color: #e0e7ff;">
+    <h2 style="color: #e0e7ff;">Submit Assignment: {{ assignment.title }}</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_file" class="form-label" style="color: #e0e7ff;">File</label>
+            {{ form.file }}
+            {% if form.instance.file %}
+                <p style="color: #e0e7ff;">Current file: <a href="{{ form.instance.file.url }}" style="color: #17a2b8;">{{ form.instance.file.name }}</a></p>
+            {% endif %}
         </div>
-    </div>
+        <button type="submit" class="btn btn-success me-2" style="background-color: #28a745;">Submit</button>
+        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary" style="background-color: #17a2b8;">Cancel</a>
+    </form>
 </div>
 {% endblock %}

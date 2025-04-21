@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5" style="background-color: #2a3b5a; padding: 20px; border-radius: 8px; color: #e0e7ff; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #e0e7ff; text-align: center;">Confirm Deletion</h2>
+    <p style="text-align: center;">Are you sure you want to delete the following reminder?</p>
+    
+    <div style="background: rgba(42, 59, 90, 0.9); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p><strong>Title:</strong> {{ object.title }}</p>
+        <p><strong>Reminder Date:</strong> {{ object.reminder_date|date:"M d, Y H:i" }}</p>
+        <p><strong>Created At:</strong> {{ object.created_at|date:"M d, Y H:i" }}</p>
+    </div>
+
+    <form method="post" style="text-align: center;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger me-2" style="background-color: #dc3545; border: none;">Delete</button>
+        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary" style="background-color: #17a2b8; border: none;">Cancel</a>
+    </form>
+</div>
+{% endblock %}
