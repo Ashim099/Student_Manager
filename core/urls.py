@@ -7,7 +7,7 @@ from .views import (
     teacher_share_assignment, teacher_post_announcement, teacher_publish_result, student_dashboard_view,
     student_choose_program, student_pomodoro_timer, student_set_reminder, student_submit_assignment, teacher_delete_announcement,
     teacher_edit_resource,teacher_edit_announcement,teacher_delete_assignment, teacher_edit_assignment,
-    student_create_reminder, student_edit_reminder, student_delete_reminder
+    student_create_reminder, student_edit_reminder, student_delete_reminder,student_course_recommendation, search_course_recommendation,student_gpa_prediction
 )
 # student_gpa_prediction, student_course_recommendation
 urlpatterns = [
@@ -47,5 +47,9 @@ urlpatterns = [
     path('student/submit-assignment/<int:assignment_id>/', student_submit_assignment, name='student_submit_assignment'),
     path('student/create-reminder/', student_create_reminder, name='student_create_reminder'),
     path('student/edit-reminder/<int:reminder_id>/', student_edit_reminder, name='student_edit_reminder'),
-    path('student/delete-reminder/<int:reminder_id>/', student_delete_reminder, name='student_delete_reminder')
+    path('student/delete-reminder/<int:reminder_id>/', student_delete_reminder, name='student_delete_reminder'),
+    path('student/course-recommendation/', student_course_recommendation, name='student_course_recommendation'),
+    path('student/search-course-recommendation/', search_course_recommendation, name='search_course_recommendation'),
+    path('student/search-gpa-prediction/', student_gpa_prediction, name='student_gpa_prediction')
+
 ]

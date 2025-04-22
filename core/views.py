@@ -1,16 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
 import random
+import csv
+import json
+import pickle
 from django_ratelimit.decorators import ratelimit
 from .models import User, OTP, Program, Module, StudentProgram, Resource, Assignment, Submission, Result, Reminder, Announcement
 from .forms import AdminAddUserForm
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from .forms import ResourceForm, AssignmentForm, AnnouncementForm, SubmissionForm, ReminderForm
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 
 
@@ -383,8 +389,12 @@ def admin_enroll_student(request, program_id):
 @login_required
 @role_required('student')
 def student_dashboard_view(request):
+    if request.user.role != 'student':
+        messages.error(request, "Access denied: You are not a student.")
+        return redirect('login')
+
     student = request.user
-    programs = student.enrolled_programs.all()  # Returns StudentProgram objects
+    programs = student.enrolled_programs.all()
     modules = Module.objects.filter(program__in=programs.values('program'))
     
     announcements = Announcement.objects.filter(module__in=modules)
@@ -394,7 +404,6 @@ def student_dashboard_view(request):
     reminders = Reminder.objects.filter(student=student)
     submissions = Submission.objects.filter(student=student)
     
-    # Get the first program's name (access via the program field)
     program_name = programs.first().program.name if programs.exists() else "No Program"
 
     context = {
@@ -681,28 +690,132 @@ def teacher_publish_result(request, module_id):
     }
     return render(request, 'teacher_publish_result.html', context)
 
-# Commented ML Model Views (to be implemented later)
-'''
-# Student: GPA Prediction
-def student_gpa_prediction(request):
-    if not request.user.is_authenticated or request.user.role != 'student':
-        return redirect('homepage')
-    if request.method == 'POST':
-        grades = [float(request.POST.get(f'grade_{i}', 0)) for i in range(1, 4) if request.POST.get(f'grade_{i}')]
-        attendance = float(request.POST.get('attendance', 0))
-        student_data = {'grades': grades, 'attendance': attendance}
-        predicted_gpa = predict_gpa(student_data)
-        return render(request, 'student_gpa_prediction.html', {'predicted_gpa': predicted_gpa})
-    return render(request, 'student_gpa_prediction.html')
-
-# Student: Course Recommendation
+@login_required
 def student_course_recommendation(request):
-    if not request.user.is_authenticated or request.user.role != 'student':
-        return redirect('homepage')
+    if request.user.role != 'student':
+        messages.error(request, "Access denied: You are not a student.")
+        return redirect('login')
+
+    return render(request, 'student_course_recommendation.html', {})
+
+@login_required
+def search_course_recommendation(request):
+    if request.user.role != 'student':
+        return JsonResponse({'error': 'Access denied: You are not a student.'}, status=403)
+
+    search_term = request.GET.get('term', '').strip().lower()
+    csv_path = r"D:\StudentManager\core\UdemyCleanedTitle.csv"
+    courses = []
+
+    if not search_term:  # Return empty list for empty search term
+        return JsonResponse({'courses': []})
+
+    try:
+        with open(csv_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                title = row['course_title'].lower()  # Use course_title for searching
+                if search_term in title:
+                    courses.append({
+                        'title': row['Clean_title'],  # Use Clean_title for display
+                        'url': row['url']
+                    })
+                if len(courses) >= 10:  # Limit to 10 suggestions
+                    break
+    except FileNotFoundError:
+        return JsonResponse({'courses': [], 'error': 'Course data not found.'})
+    except KeyError as e:
+        return JsonResponse({'courses': [], 'error': f'Missing column: {e}'})
+
+    return JsonResponse({'courses': courses})
+
+@login_required
+def student_gpa_prediction(request):
+    if request.user.role != 'student':
+        messages.error(request, "Access denied: You are not a student.")
+        return redirect('login')
+
+    predicted_gpa = None
+    final_grade = None
+    error_message = None
+    form_data = {}
+
     if request.method == 'POST':
-        interests = request.POST.get('interests', '').split(',')
-        student_data = {'interests': [interest.strip() for interest in interests]}
-        recommended_courses = recommend_courses(student_data)
-        return render(request, 'student_course_recommendation.html', {'recommended_courses': recommended_courses})
-    return render(request, 'student_course_recommendation.html')
-'''
+        # Collect form data
+        try:
+            attendance_rate = int(request.POST.get('attendance_rate'))
+            study_hours = int(request.POST.get('study_hours'))
+            previous_grade = int(request.POST.get('previous_grade'))
+            extracurricular = int(request.POST.get('extracurricular'))
+            parental_support = request.POST.get('parental_support')
+
+            # Validate inputs
+            if not (0 <= attendance_rate <= 100):
+                raise ValueError("Attendance Rate must be between 0 and 100.")
+            if not (0 <= study_hours <= 168):  # Max hours in a week
+                raise ValueError("Study Hours Per Week must be between 0 and 168.")
+            if not (0 <= previous_grade <= 100):
+                raise ValueError("Previous Grade must be between 0 and 100.")
+            if not (0 <= extracurricular <= 5):
+                raise ValueError("Extracurricular Activities must be between 0 and 5.")
+            if parental_support not in ['High', 'Medium', 'Low']:
+                raise ValueError("Parental Support must be High, Medium, or Low.")
+
+            # Encode ParentalSupport (same as in predict.ipynb)
+            le = LabelEncoder()
+            le.fit(['High', 'Medium', 'Low'])  # High=0, Medium=2, Low=1 (based on predict.ipynb)
+            parental_support_encoded = le.transform([parental_support])[0]
+
+            # Prepare features for the model
+            features = pd.DataFrame({
+                'AttendanceRate': [attendance_rate],
+                'StudyHoursPerWeek': [study_hours],
+                'PreviousGrade': [previous_grade],
+                'ExtracurricularActivities': [extracurricular],
+                'ParentalSupport': [parental_support_encoded]
+            })
+
+            # Load the trained model
+            model_path = r"D:\StudentManager\core\gpa_prediction_model.pkl"
+            with open(model_path, 'rb') as f:
+                model = pickle.load(f)
+
+            # Predict FinalGrade
+            final_grade = model.predict(features)[0]
+            final_grade = round(float(final_grade), 2)
+
+            # Convert FinalGrade to GPA (4.0 scale)
+            if final_grade >= 90:
+                predicted_gpa = 4.0
+            elif final_grade >= 80:
+                predicted_gpa = 3.0
+            elif final_grade >= 70:
+                predicted_gpa = 2.0
+            elif final_grade >= 60:
+                predicted_gpa = 1.0
+            else:
+                predicted_gpa = 0.0
+
+            # Store form data for display
+            form_data = {
+                'attendance_rate': attendance_rate,
+                'study_hours': study_hours,
+                'previous_grade': previous_grade,
+                'extracurricular': extracurricular,
+                'parental_support': parental_support
+            }
+
+        except FileNotFoundError:
+            error_message = "GPA prediction model not found."
+        except ValueError as e:
+            error_message = str(e)
+        except Exception as e:
+            error_message = f"Error predicting GPA: {str(e)}"
+
+    context = {
+        'predicted_gpa': predicted_gpa,
+        'final_grade': final_grade,
+        'error_message': error_message,
+        'form_data': form_data
+    }
+    return render(request, 'student_gpa_prediction.html', context)
