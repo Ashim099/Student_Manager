@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.utils import timezone
@@ -17,8 +16,8 @@ from django.http import HttpResponseForbidden, JsonResponse
 from .forms import ResourceForm, AssignmentForm, AnnouncementForm, SubmissionForm, ReminderForm
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-
-
+import joblib
+import numpy as np
 
 # Role-based access decorator
 def role_required(role):
@@ -736,86 +735,67 @@ def student_gpa_prediction(request):
         return redirect('login')
 
     predicted_gpa = None
-    final_grade = None
-    error_message = None
-    form_data = {}
+    predicted_grade = None
 
     if request.method == 'POST':
-        # Collect form data
         try:
-            attendance_rate = int(request.POST.get('attendance_rate'))
-            study_hours = int(request.POST.get('study_hours'))
-            previous_grade = int(request.POST.get('previous_grade'))
-            extracurricular = int(request.POST.get('extracurricular'))
-            parental_support = request.POST.get('parental_support')
+            # Extract form data
+            attendance_rate = float(request.POST.get('attendance_rate', 0))
+            study_hours = float(request.POST.get('study_hours', 0))
+            previous_grade = float(request.POST.get('previous_grade', 0))
+            extracurricular_hours = float(request.POST.get('extracurricular_hours', 0))
+            parental_support = float(request.POST.get('parental_support', 0))
 
             # Validate inputs
             if not (0 <= attendance_rate <= 100):
-                raise ValueError("Attendance Rate must be between 0 and 100.")
-            if not (0 <= study_hours <= 168):  # Max hours in a week
-                raise ValueError("Study Hours Per Week must be between 0 and 168.")
+                messages.error(request, "Attendance Rate must be between 0 and 100.")
+                return render(request, 'student_gpa_prediction.html', {})
+            if not (0 <= study_hours <= 168):
+                messages.error(request, "Study Hours per Week must be between 0 and 168.")
+                return render(request, 'student_gpa_prediction.html', {})
             if not (0 <= previous_grade <= 100):
-                raise ValueError("Previous Grade must be between 0 and 100.")
-            if not (0 <= extracurricular <= 5):
-                raise ValueError("Extracurricular Activities must be between 0 and 5.")
-            if parental_support not in ['High', 'Medium', 'Low']:
-                raise ValueError("Parental Support must be High, Medium, or Low.")
+                messages.error(request, "Previous Grade must be between 0 and 100.")
+                return render(request, 'student_gpa_prediction.html', {})
+            if not (0 <= extracurricular_hours <= 10):
+                messages.error(request, "Extracurricular Hours must be between 0 and 10.")
+                return render(request, 'student_gpa_prediction.html', {})
+            if not (0 <= parental_support <= 2):  # Adjusted based on LabelEncoder: High=0, Low=1, Medium=2
+                messages.error(request, "Parental Support must be between 0 and 2 (0=High, 1=Low, 2=Medium).")
+                return render(request, 'student_gpa_prediction.html', {})
 
-            # Encode ParentalSupport (same as in predict.ipynb)
-            le = LabelEncoder()
-            le.fit(['High', 'Medium', 'Low'])  # High=0, Medium=2, Low=1 (based on predict.ipynb)
-            parental_support_encoded = le.transform([parental_support])[0]
+            # Load the ML model
+            model_path = r"D:\StudentManager\core\ml_models\gpa_prediction_model.pkl"
+            try:
+                model = joblib.load(model_path)
+            except Exception as e:
+                messages.error(request, f"Error loading the GPA prediction model: {str(e)}")
+                return render(request, 'student_gpa_prediction.html', {})
 
-            # Prepare features for the model
-            features = pd.DataFrame({
-                'AttendanceRate': [attendance_rate],
-                'StudyHoursPerWeek': [study_hours],
-                'PreviousGrade': [previous_grade],
-                'ExtracurricularActivities': [extracurricular],
-                'ParentalSupport': [parental_support_encoded]
-            })
+            # Prepare input for the model
+            input_data = np.array([[attendance_rate, study_hours, previous_grade, extracurricular_hours, parental_support]])
 
-            # Load the trained model
-            model_path = r"D:\StudentManager\core\gpa_prediction_model.pkl"
-            with open(model_path, 'rb') as f:
-                model = pickle.load(f)
+            # Make prediction
+            predicted_grade = model.predict(input_data)[0]
+            predicted_grade = max(0, min(100, predicted_grade))  # Clamp between 0 and 100
 
-            # Predict FinalGrade
-            final_grade = model.predict(features)[0]
-            final_grade = round(float(final_grade), 2)
-
-            # Convert FinalGrade to GPA (4.0 scale)
-            if final_grade >= 90:
+            # Convert to GPA (4.0 scale)
+            if predicted_grade >= 90:
                 predicted_gpa = 4.0
-            elif final_grade >= 80:
+            elif predicted_grade >= 80:
                 predicted_gpa = 3.0
-            elif final_grade >= 70:
+            elif predicted_grade >= 70:
                 predicted_gpa = 2.0
-            elif final_grade >= 60:
+            elif predicted_grade >= 60:
                 predicted_gpa = 1.0
             else:
                 predicted_gpa = 0.0
 
-            # Store form data for display
-            form_data = {
-                'attendance_rate': attendance_rate,
-                'study_hours': study_hours,
-                'previous_grade': previous_grade,
-                'extracurricular': extracurricular,
-                'parental_support': parental_support
-            }
-
-        except FileNotFoundError:
-            error_message = "GPA prediction model not found."
-        except ValueError as e:
-            error_message = str(e)
-        except Exception as e:
-            error_message = f"Error predicting GPA: {str(e)}"
+        except ValueError:
+            messages.error(request, "Please enter valid numbers for all fields.")
+            return render(request, 'student_gpa_prediction.html', {})
 
     context = {
         'predicted_gpa': predicted_gpa,
-        'final_grade': final_grade,
-        'error_message': error_message,
-        'form_data': form_data
+        'predicted_grade': predicted_grade,
     }
     return render(request, 'student_gpa_prediction.html', context)

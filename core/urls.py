@@ -9,7 +9,7 @@ from .views import (
     teacher_edit_resource,teacher_edit_announcement,teacher_delete_assignment, teacher_edit_assignment,
     student_create_reminder, student_edit_reminder, student_delete_reminder,student_course_recommendation, search_course_recommendation,student_gpa_prediction
 )
-# student_gpa_prediction, student_course_recommendation
+
 urlpatterns = [
     path('', homepage_view, name='homepage'),
     path('signup/', signup_view, name='signup'),
@@ -50,6 +50,6 @@ urlpatterns = [
     path('student/delete-reminder/<int:reminder_id>/', student_delete_reminder, name='student_delete_reminder'),
     path('student/course-recommendation/', student_course_recommendation, name='student_course_recommendation'),
     path('student/search-course-recommendation/', search_course_recommendation, name='search_course_recommendation'),
-    path('student/search-gpa-prediction/', student_gpa_prediction, name='student_gpa_prediction')
+    path('student/gpa-prediction/', student_gpa_prediction, name='student_gpa_prediction')
 
 ]
