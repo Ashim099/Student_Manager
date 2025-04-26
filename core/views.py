@@ -3,8 +3,9 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.utils import timezone
-from datetime import timedelta
+from django.utils import timezone 
+from datetime import timedelta, datetime
+import datetime as dt
 import random
 import csv
 import json
@@ -18,6 +19,8 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 import joblib
 import numpy as np
+from .tasks import send_reminder_email
+import logging
 
 # Role-based access decorator
 def role_required(role):
@@ -115,7 +118,10 @@ def verify_otp_signup(request):
             otp_record.delete()
             user.backend = 'core.authentication.EmailBackend'
             login(request, user)
-            del request.session['signup_email']
+            # Safely delete session key
+            if 'signup_email' in request.session:
+                del request.session['signup_email']
+            messages.success(request, 'Sign-up successful!')
             if user.role == 'student':
                 return redirect('student_dashboard')
             elif user.role == 'teacher':
@@ -181,8 +187,12 @@ def verify_otp(request):
             user.backend = 'core.authentication.EmailBackend'
             login(request, user)
             otp_record.delete()
-            del request.session['login_email']
-            del request.session['login_role']
+            # Safely delete session keys
+            if 'login_email' in request.session:
+                del request.session['login_email']
+            if 'login_role' in request.session:
+                del request.session['login_role']
+            messages.success(request, 'Login successful!')
             if user.role == 'student':
                 return redirect('student_dashboard')
             elif user.role == 'teacher':
@@ -481,18 +491,39 @@ def student_submit_assignment(request, assignment_id):
     return render(request, 'student_submit_assignment.html', context)
 
 # Student create reminders
-def student_create_reminder(request):
-    if request.method == "POST":
+logger = logging.getLogger(__name__)
+@login_required
+@role_required('student')
+def create_reminder(request):
+    logger.info("Entering create_reminder view")
+    if request.method == 'POST':
+        logger.info("Received POST request")
         form = ReminderForm(request.POST)
         if form.is_valid():
+            logger.info("Form is valid")
+            # Check if the user is a student
+            if request.user.role != 'student':
+                logger.error(f"User {request.user.email} is not a student (role: {request.user.role})")
+                messages.error(request, "Only students can create reminders.")
+                return redirect('student_dashboard')
+            
             reminder = form.save(commit=False)
-            reminder.student = request.user
+            reminder.student = request.user  # Set directly to the user
             reminder.save()
-            messages.success(request, "Reminder created successfully!")
+            reminder_date = form.cleaned_data['reminder_date']
+            delay = (reminder_date - timezone.now()).total_seconds()
+            logger.info(f"Scheduling reminder email for reminder {reminder.id} at {reminder_date}, delay: {delay} seconds")
+            send_reminder_email(reminder.id, schedule=int(delay))
+            messages.success(request, 'Reminder created successfully!')
             return redirect('student_dashboard')
+        else:
+            logger.error(f"Form is invalid: {form.errors}")
     else:
+        logger.info("Received GET request")
         form = ReminderForm()
     return render(request, 'student_create_reminder.html', {'form': form})
+
+
 
 def student_edit_reminder(request, reminder_id):
     reminder = get_object_or_404(Reminder, id=reminder_id, student=request.user)

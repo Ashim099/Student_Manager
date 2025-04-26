@@ -123,6 +123,7 @@ class Reminder(models.Model):
     title = models.CharField(max_length=200)
     reminder_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
+    is_sent = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.title} for {self.student.username}'
@@ -137,23 +138,3 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.title
-'''
-# New models for future ML features
-class GpaPrediction(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gpa_predictions')
-    predicted_gpa = models.FloatField()
-    prediction_date = models.DateTimeField(auto_now_add=True)
-    confidence_score = models.FloatField(null=True, blank=True)  # Optional confidence score from the ML model
-
-    def __str__(self):
-        return f'GPA Prediction {self.predicted_gpa} for {self.student.username}'
-
-class CourseRecommendation(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_recommendations')
-    module = models.ForeignKey(Module, on_delete=models.CASCADE)  # Recommended course/module
-    recommendation_score = models.FloatField(null=True, blank=True)  # Optional score from the ML model
-    recommended_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f'Recommendation of {self.module.name} for {self.student.username}'
-    '''

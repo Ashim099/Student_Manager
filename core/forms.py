@@ -52,9 +52,20 @@ class SubmissionForm(forms.ModelForm):
 from .models import Reminder
 
 class ReminderForm(forms.ModelForm):
+    reminder_date = forms.DateTimeField(
+        input_formats=['%Y-%m-%dT%H:%M'],  # Adjusted to match datetime-local format
+        widget=forms.DateTimeInput(
+            attrs={
+                'type': 'datetime-local',   
+                'class': 'form-control',
+                'placeholder': '2025-04-24T14:00'  
+            }
+        ),
+    )
+
     class Meta:
         model = Reminder
         fields = ['title', 'reminder_date']
         widgets = {
-            'reminder_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
         }
